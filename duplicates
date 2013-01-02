@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+print "hello! now we will see whether you have duplicate files in your folder(s)...\n";
+
+my @folders   = qw();
+my $recursive = 1;
+my $remove    = 0;
+my %file      = qw();
+
+GetOptions(
+    "folder=s"   => \@folders,
+    "recursive!" => \$recursive,
+    "remove!"    => \$remove,
+);
+
+@folders = split(/,/ , join(',', @folders));
+
+unless (@folders) {
+    die "no folder(s) to search in!\n";
+}
+
+my($file_digest, $file_name);
+
+foreach my $folder (@folders) {
+    print "\nfolder:\t$folder\n";
+    my $find_cmd = 'find ' . $folder . ' -xdev';
+    unless ($recursive) { $find_cmd .= ' -maxdepth 1'; }
+    $find_cmd .= ' -type f -exec sha256sum -b {} \;';
+    open(FILE, $find_cmd . ' |');
+    while (<FILE>) {
+        chomp;
+        ($file_digest, $file_name) = split(/ \*/);
+        print "\t$file_digest - $file_name\n";
+        if (defined($file{$file_digest})) {
+            push @{ $file{$file_digest} }, $file_name;
+        } else {
+            $file{$file_digest} = [ $file_name ];
+        }
+    }
+    close(FILE);
+}
+
+print "\n============== DUPLICATES ================\n\n";
+
+foreach $file_digest (keys %file) {
+    my $duplicates_number = scalar @{ $file{$file_digest} };
+    if ($duplicates_number > 1) {
+        print $file_digest . ': ' . $duplicates_number . " files\n";
+        my $cnt = 0;
+        foreach $file_name (@{ $file{$file_digest} }) {
+            print "\t$file_name\n";
+            if ($remove && $cnt++) { system("rm '$file_name'"); }
+        }
+    }
+}
+ 
