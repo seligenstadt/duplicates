@@ -7,21 +7,27 @@ use Getopt::Long;
 
 print "hello! now we will see whether you have duplicate files in your folder(s)...\n";
 
-my @folders   = qw();
-my $recursive = 1;
-my $remove    = 0;
-my %file      = qw();
+my @folders    = qw();
+my $recursive  = 1;
+my $remove     = 0;
+my $duplicates = 0;
+my %file       = qw();
 
 GetOptions(
-    "folder=s"   => \@folders,
-    "recursive!" => \$recursive,
-    "remove!"    => \$remove,
+    "folder=s"     => \@folders,
+    "recursive!"   => \$recursive,
+    "remove!"      => \$remove,
+    "duplicates=s" => \$duplicates,
 );
 
 @folders = split(/,/ , join(',', @folders));
 
 unless (@folders) {
     die "no folder(s) to search in!\n";
+}
+
+if ($duplicates) {
+    open(DUPLICATES, ">$duplicates") || die "can't open '$duplicates' for writing!\n";
 }
 
 my($file_digest, $file_name);
@@ -45,15 +51,23 @@ foreach my $folder (@folders) {
     close(FILE);
 }
 
-print "\n============== DUPLICATES ================\n\n";
+unless ($duplicates) { print "\n============== DUPLICATES ================\n\n"; }
 
 foreach $file_digest (keys %file) {
     my $duplicates_number = scalar @{ $file{$file_digest} };
     if ($duplicates_number > 1) {
-        print $file_digest . ': ' . $duplicates_number . " files\n";
+        if ($duplicates) {
+            print DUPLICATES $file_digest . ': ' . $duplicates_number . " files\n";
+        } else {
+            print $file_digest . ': ' . $duplicates_number . " files\n";
+        }
         my $cnt = 0;
         foreach $file_name (@{ $file{$file_digest} }) {
-            print "\t$file_name\n";
+            if ($duplicates) {
+                print DUPLICATES "\t$file_name\n"; 
+            } else {
+                print "\t$file_name\n";
+            }
             if ($remove && $cnt++) { system("rm '$file_name'"); }
         }
     }
