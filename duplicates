@@ -7,7 +7,7 @@ within given folders
 
 =head1 SYNOPSIS
 
-B<duplicates> [--(no)recursive] [--(no)remove] [--duplicates FILE] --folder A,B --folder C ... 
+B<duplicates> [--(no)recursive] [--(no)remove] [--(no)log] [--duplicates FILE] --folder A,B --folder C ... 
 
 =head1 DEPENDENCIES
 
@@ -28,11 +28,10 @@ use warnings;
 
 use Getopt::Long;
 
-print "hello! now we will see whether you have duplicate files in your folder(s)...\n";
-
 my @folders    = qw();
 my $recursive  = 1;
 my $remove     = 0;
+my $log        = 1;
 my $duplicates = 0;
 my %file       = qw();
 
@@ -40,6 +39,7 @@ GetOptions(
     "folder=s"     => \@folders,
     "recursive!"   => \$recursive,
     "remove!"      => \$remove,
+    "log!"         => \$log,
     "duplicates=s" => \$duplicates,
 );
 
@@ -53,10 +53,12 @@ if ($duplicates) {
     open(DUPLICATES, ">$duplicates") || die "can't open '$duplicates' for writing!\n";
 }
 
+if ($log) { print "\n" . '=' x 16 . ' FILES ' . '=' x 16 . "\n"; }
+
 my($file_digest, $file_name);
 
 foreach my $folder (@folders) {
-    print "\nfolder:\t$folder\n";
+    if ($log) { print "\nfolder:\t$folder\n"; }
     my $find_cmd = "find '$folder' -xdev";
     unless ($recursive) { $find_cmd .= ' -maxdepth 1'; }
     $find_cmd .= ' -type f -exec sha256sum -b {} \;';
@@ -64,7 +66,7 @@ foreach my $folder (@folders) {
     while (<FILE>) {
         chomp;
         ($file_digest, $file_name) = split(/ \*/);
-        print "\t$file_digest - $file_name\n";
+        if ($log) { print "\t$file_digest - $file_name\n"; }
         if (defined($file{$file_digest})) {
             push @{ $file{$file_digest} }, $file_name;
         } else {
@@ -74,7 +76,7 @@ foreach my $folder (@folders) {
     close(FILE);
 }
 
-unless ($duplicates) { print "\n============== DUPLICATES ================\n\n"; }
+unless ($duplicates) { print "\n" . '=' x 16 . ' DUPLICATES ' . '=' x 16 . "\n\n"; }
 
 foreach $file_digest (keys %file) {
     my $duplicates_number = scalar @{ $file{$file_digest} };
@@ -95,4 +97,3 @@ foreach $file_digest (keys %file) {
         }
     }
 }
- 
