@@ -1,5 +1,28 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+duplicates - a utility for searching and removing duplicates of regular files
+within given folders
+
+=head1 SYNOPSIS
+
+B<duplicates> [--(no)recursive] [--(no)remove] [--duplicates FILE] --folder A,B --folder C ... 
+
+=head1 DEPENDENCIES
+
+B<duplicates> uses a system utility B<find> and B<sha256sum> for digest calculation.
+
+=head1 BUGS
+
+If a folder or file name contains an apostrophe-character, then the result will be unpredictable.
+
+=head1 AUTHOR
+
+Roman Dieser, roman.dieser@mail.ru
+
+=cut
+  
 use strict;
 use warnings;
 
