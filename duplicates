@@ -34,7 +34,7 @@ my($file_digest, $file_name);
 
 foreach my $folder (@folders) {
     print "\nfolder:\t$folder\n";
-    my $find_cmd = 'find ' . $folder . ' -xdev';
+    my $find_cmd = "find '$folder' -xdev";
     unless ($recursive) { $find_cmd .= ' -maxdepth 1'; }
     $find_cmd .= ' -type f -exec sha256sum -b {} \;';
     open(FILE, $find_cmd . ' |');
