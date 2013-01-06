@@ -15,7 +15,8 @@ B<duplicates> uses a system utility B<find> and B<sha256sum> for digest calculat
 
 =head1 BUGS
 
-If a folder name contains an apostrophe-character, then the result will be unpredictable.
+If a folder name in the command line contains apostrophe or comma characters, 
+then the result will be unpredictable.
 
 =head1 AUTHOR
 
@@ -64,11 +65,15 @@ if ($log) { print "\n" . '=' x 16 . ' FILES ' . '=' x 16 . "\n"; }
 my($file_digest, $file_name);
 
 foreach my $folder (@folders) {
+
     if ($log) { print "\nfolder:\t$folder\n"; }
+    
     my $find_cmd = "find '$folder' -xdev";
     unless ($recursive) { $find_cmd .= ' -maxdepth 1'; }
     $find_cmd .= ' -type f -exec sha256sum -b {} \;';
+
     open(FILE, $find_cmd . ' |');
+    
     while (<FILE>) {
         chomp;
         ($file_digest, $file_name) = split(/ \*/);
@@ -79,6 +84,7 @@ foreach my $folder (@folders) {
             $file{$file_digest} = [ $file_name ];
         }
     }
+    
     close(FILE);
 }
 
@@ -87,6 +93,7 @@ unless ($duplicates) { print "\n" . '=' x 16 . ' DUPLICATES ' . '=' x 16 . "\n\n
 foreach $file_digest (keys %file) {
     my $duplicates_number = scalar @{ $file{$file_digest} };
     if ($duplicates_number > 1) {
+    
         if ($duplicates) {
             print DUPLICATES $file_digest . ': ' . $duplicates_number . " files\n";
         } else {
