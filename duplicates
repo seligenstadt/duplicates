@@ -2,20 +2,15 @@
 
 =head1 NAME
 
-duplicates - a utility for searching and removing duplicates of regular files
-within given folders
+duplicates - a utility for searching and removing duplicates of regular files within given folders
 
 =head1 SYNOPSIS
 
-B<duplicates> [--(no)recursive] [--(no)remove] [--(no)log] [--duplicates FILE] --folder A,B --folder C ... 
+B<duplicates> [--(no)recursive] [--(no)remove] [--(no)log] [--duplicates FILE] --folder A { --folder B ... } 
 
 =head1 DEPENDENCIES
 
 B<duplicates> uses File::Find::Rule and Digest::SHA Perl modules.
-
-=head1 BUGS
-
-If a folder name in the command line contains a comma character, then the result will be unpredictable.
 
 =head1 AUTHOR
 
@@ -50,8 +45,6 @@ GetOptions(
     "log!"         => \$log,
     "duplicates=s" => \$duplicates,
 );
-
-@folders = split(/,/ , join(',', @folders));
 
 unless (@folders) {
     die "no folder(s) to search in!\n";
